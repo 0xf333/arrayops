@@ -10,6 +10,7 @@ func testErrInvalidType(unit *testing.T, array Array) {
 			unit.Errorf(">>> The function did not panic, but it should.")
 		}
 	}()
+
 	instance := New(array)
 	instance._isValid()
 }
@@ -25,6 +26,7 @@ func TestIndexOf(t *testing.T) {
 	if instance.IndexOf(2) != 1 {
 		t.Errorf(">>> Expected %d but got %d.", 1, instance.IndexOf(2))
 	}
+
 	if instance.IndexOf(4) != -1 {
 		t.Errorf(">>> Expected %d but got %d.", -1, instance.IndexOf(4))
 	}
@@ -35,6 +37,7 @@ func TestIncludes(t *testing.T) {
 	if !instance.Includes("foo") {
 		t.Errorf(">>> Expected %t but got %t.", true, instance.Includes("foo"))
 	}
+
 	if instance.Includes("baz") {
 		t.Errorf(">>> Expected %t but got %t.", false, instance.Includes("baz"))
 	}
@@ -64,6 +67,7 @@ func TestAll(t *testing.T) {
 	if got != expected {
 		t.Errorf(">>> Expected %t but got %t.", expected, got)
 	}
+
 	instance = New([]int{5, 4, 3})
 	expected = false
 	got = instance.All(predicate)
@@ -76,14 +80,17 @@ func _isPrime(n int) bool {
 	if n <= 2 {
 		return n == 2
 	}
+
 	if n%2 == 0 {
 		return false
 	}
+
 	for i := 3; i*i <= n; i += 2 {
 		if n%i == 0 {
 			return false
 		}
 	}
+
 	return true
 }
 
