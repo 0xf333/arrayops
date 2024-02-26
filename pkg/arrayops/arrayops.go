@@ -5,8 +5,6 @@ import (
 	"reflect"
 )
 
-const ErrInvalidType = "\n>>> Error: The expected data structure is slice or an array, but got:\n---> %v.\n"
-
 type Array interface{}
 
 type ArrayInstance struct {
@@ -20,9 +18,12 @@ func New(array Array) *ArrayInstance {
 func (instance *ArrayInstance) _isValid() reflect.Value {
 	arrayValue := reflect.ValueOf(instance.Array)
 
+	invalidTypeErrMsg := "\n\n>>> Error: The expected data structure is " +
+		"slice or an array, but got:\n---> %v.\n\n"
+
 	if arrayValue.Kind() != reflect.Slice && arrayValue.Kind() != reflect.Array {
 		panic(fmt.Sprintf(
-			ErrInvalidType,
+			invalidTypeErrMsg,
 			reflect.TypeOf(instance.Array).Kind(),
 		))
 	}
@@ -82,4 +83,61 @@ func (instance *ArrayInstance) All(predicate func(interface{}) bool) bool {
 	}
 
 	return true
+}
+
+func (instance *ArrayInstance) Map(transform func(interface{}) interface{}) *ArrayInstance {
+	arrayValue := instance._isValid()
+	result := reflect.MakeSlice(
+		arrayValue.Type(),
+		arrayValue.Len(),
+		arrayValue.Cap(),
+	)
+
+	for i := 0; i < arrayValue.Len(); i++ {
+		result.Index(i).Set(
+			reflect.ValueOf(
+				transform(arrayValue.Index(i).Interface()),
+			),
+		)
+	}
+
+	return New(result.Interface())
+}
+
+func (instance *ArrayInstance) Filter(predicate func(interface{}) bool) *ArrayInstance {
+	arrayValue := instance._isValid()
+	result := reflect.MakeSlice(
+		arrayValue.Type(),
+		0,
+		arrayValue.Cap(),
+	)
+
+	for i := 0; i < arrayValue.Len(); i++ {
+		val := arrayValue.Index(i).Interface()
+		if predicate(val) {
+			result = reflect.Append(
+				result,
+				reflect.ValueOf(val),
+			)
+		}
+	}
+
+	return New(result.Interface())
+}
+
+func (instance *ArrayInstance) Reduce(
+	accumulator func(interface{}, interface{}) interface{},
+	initialValue interface{},
+) interface{} {
+	arrayValue := instance._isValid()
+	result := initialValue
+
+	for i := 0; i < arrayValue.Len(); i++ {
+		result = accumulator(
+			result,
+			arrayValue.Index(i).Interface(),
+		)
+	}
+
+	return result
 }
